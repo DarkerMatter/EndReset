@@ -52,4 +52,4 @@ Server: Elytras in Ender Chests and regular chests in all dimensions have been c
 
 ## Support
 
-If you encounter any issues while using this plugin, please visit the plugin's website at [https://darkermatter.net](https://darkermatter.net) for support and assistance.
+If you encounter any issues while using this plugin, please visit my discord at [https://darkermatter.net/discord](https://darkermatter.net/discord) for support and assistance.
