@@ -5,6 +5,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.Location;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Container;
 import org.bukkit.command.Command;
@@ -17,6 +18,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.StructureType;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -105,11 +107,21 @@ public class EndReset implements CommandExecutor {
             }
         }
     }
+    private boolean isInEndCity(Location location) {
+        Location nearestEndCityCenter = location.getWorld().locateNearestStructure(location, StructureType.END_CITY, 0, false);
+
+        if (nearestEndCityCenter == null) {
+            return false;
+        }
+
+        double distanceThreshold = 100.0; // Adjust this value according to the maximum distance from the End City center you want to consider as inside the End City.
+        return location.distance(nearestEndCityCenter) <= distanceThreshold;
+    }
     private void restoreElytrasInItemFrames(World world) {
         world.getEntities().stream()
                 .filter(entity -> entity instanceof ItemFrame)
                 .map(entity -> (ItemFrame) entity)
-                .filter(itemFrame -> itemFrame.getItem().getType() == Material.AIR)
+                .filter(itemFrame -> itemFrame.getItem().getType() == Material.AIR && isInEndCity(itemFrame.getLocation()))
                 .forEach(itemFrame -> itemFrame.setItem(new ItemStack(Material.ELYTRA), false));
     }
 
