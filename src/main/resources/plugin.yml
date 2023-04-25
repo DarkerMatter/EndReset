@@ -4,7 +4,7 @@ main: pl1.darkermatter.EndResetPlugin
 api-version: 1.19
 authors: [DarkerMatter]
 description: End Reset Plugin
-website: https://darkermatter.net
+website: https://darker.systems
 
 commands:
   endreset:
