@@ -1,0 +1,29 @@
+name: endreset
+version: '${project.version}'
+main: pl1.darkermatter.EndResetPlugin
+api-version: 1.19
+authors: [DarkerMatter]
+description: End Reset Plugin
+website: https://darkermatter.net
+
+commands:
+  endreset:
+    description: Resets all Elytras in the End dimension
+    usage: /<command>
+  clearelytras:
+    description: Clears Elytras from all Ender Chests and regular chests in all dimensions
+    usage: /<command>
+  saveelytraframes:
+    description: Saves the current Elytra item frames' positions in the End dimension
+    usage: /<command>
+
+permissions:
+  endreset.command:
+    description: Allows using the endreset command
+    default: op
+  clearelytras.command:
+    description: Allows using the clearelytras command
+    default: op
+  saveelytraframes.command:
+    description: Allows using the saveelytraframes command
+    default: op
