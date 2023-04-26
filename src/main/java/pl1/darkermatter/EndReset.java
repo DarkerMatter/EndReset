@@ -1,57 +1,31 @@
 package pl1.darkermatter;
 
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Chunk;
-import org.bukkit.Material;
-import org.bukkit.World;
-import org.bukkit.Location;
-import org.bukkit.block.BlockState;
-import org.bukkit.block.Container;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.Item;
-import org.bukkit.entity.ItemFrame;
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.*;
+import org.bukkit.block.*;
+import org.bukkit.command.*;
+import org.bukkit.entity.*;
+import org.bukkit.inventory.*;
+import org.bukkit.plugin.java.*;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.StructureType;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.List;
-import java.util.Collection;
-import java.util.UUID;
 import java.util.stream.Collectors;
-
-
 
 public class EndReset implements CommandExecutor {
 
-    private JavaPlugin plugin;
+    private final JavaPlugin plugin;
+    private BukkitTask resetElytrasTask;
 
     public EndReset(JavaPlugin plugin) {
         this.plugin = plugin;
+        plugin.getCommand("endreset").setExecutor(this);
+        plugin.getCommand("resetelytras").setExecutor(this);
     }
+
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (sender.hasPermission("endreset.command") && command.getName().equalsIgnoreCase("endreset")) {
-            // ... (previous endreset command code) ...
-        } else if (sender.hasPermission("clearelytras.command") && command.getName().equalsIgnoreCase("clearelytras")) {
-            for (World world : Bukkit.getWorlds()) {
-                resetElytrasInEnderChests(world);
-                resetElytrasInChests(world);
-            }
-            sender.sendMessage(ChatColor.GREEN + "Elytras in Ender Chests and regular chests in all dimensions have been cleared.");
-        } else {
-            sender.sendMessage(ChatColor.RED + "You do not have permission to use this command.");
-        }
-
         if (sender.hasPermission("endreset.command") && command.getName().equalsIgnoreCase("endreset")) {
             World endWorld = Bukkit.getWorld("world_the_end");
 
@@ -61,8 +35,11 @@ public class EndReset implements CommandExecutor {
             }
 
             resetElytrasInWorld(endWorld);
-            restoreElytrasInItemFrames(endWorld);
+            restoreElytrasInEndCityItemFrames(endWorld);
             sender.sendMessage(ChatColor.GREEN + "Elytras in the End dimension have been reset.");
+        } else if (sender.hasPermission("resetelytras.command") && command.getName().equalsIgnoreCase("resetelytras")) {
+            resetElytrasInServer();
+            sender.sendMessage(ChatColor.GREEN + "All Elytras in the server have been removed.");
         }
         return true;
     }
@@ -70,59 +47,48 @@ public class EndReset implements CommandExecutor {
     private void resetElytrasInWorld(World world) {
         for (Chunk chunk : world.getLoadedChunks()) {
             for (Entity entity : chunk.getEntities()) {
-                if (entity instanceof Item) {
-                    ItemStack item = ((Item) entity).getItemStack();
-                    if (item.getType() == Material.ELYTRA) {
-                        entity.remove();
+                if (entity instanceof ItemFrame) {
+                    ItemFrame itemFrame = (ItemFrame) entity;
+                    ItemStack item = itemFrame.getItem();
+                    if (item != null && item.getType() == Material.ELYTRA) {
+                        itemFrame.setItem(null, false);
                     }
                 }
             }
         }
     }
 
-    private void resetElytrasInEnderChests(World world) {
-        for (Player player : world.getPlayers()) {
-            Inventory enderChest = player.getEnderChest();
-            for (int i = 0; i < enderChest.getSize(); i++) {
-                ItemStack item = enderChest.getItem(i);
-                if (item != null && item.getType() == Material.ELYTRA) {
-                    enderChest.setItem(i, null);
-                }
-            }
-        }
-    }
-    private void resetElytrasInChests(World world) {
+    private void restoreElytrasInEndCityItemFrames(World world) {
         for (Chunk chunk : world.getLoadedChunks()) {
-            for (BlockState state : chunk.getTileEntities()) {
-                if (state instanceof Container) {
-                    Container container = (Container) state;
-                    Inventory inventory = container.getInventory();
-                    for (int i = 0; i < inventory.getSize(); i++) {
-                        ItemStack item = inventory.getItem(i);
-                        if (item != null && item.getType() == Material.ELYTRA) {
-                            inventory.setItem(i, null);
+            for (Entity entity : chunk.getEntities()) {
+                if (entity instanceof ItemFrame) {
+                    ItemFrame itemFrame = (ItemFrame) entity;
+                    Location location = itemFrame.getLocation();
+                    if (world.locateNearestStructure(location, StructureType.END_CITY, 0, false) != null) {
+                        ItemStack item = itemFrame.getItem();
+                        if (item == null || item.getType() == Material.AIR) {
+                            itemFrame.setItem(new ItemStack(Material.ELYTRA), false);
                         }
                     }
                 }
             }
         }
     }
-    private boolean isInEndCity(Location location) {
-        Location nearestEndCityCenter = location.getWorld().locateNearestStructure(location, StructureType.END_CITY, 0, false);
 
-        if (nearestEndCityCenter == null) {
-            return false;
+    private void resetElytrasInServer() {
+        for (World world : Bukkit.getWorlds()) {
+            for (Chunk chunk : world.getLoadedChunks()) {
+                for (BlockState blockState : chunk.getTileEntities()) {
+                    if (blockState instanceof Container) {
+                        Container container = (Container) blockState;
+                        for (ItemStack item : container.getInventory().getContents()) {
+                            if (item != null && item.getType() == Material.ELYTRA) {
+                                container.getInventory().remove(item);
+                            }
+                        }
+                    }
+                }
+            }
         }
-
-        double distanceThreshold = 100.0; // Adjust this value according to the maximum distance from the End City center you want to consider as inside the End City.
-        return location.distance(nearestEndCityCenter) <= distanceThreshold;
     }
-    private void restoreElytrasInItemFrames(World world) {
-        world.getEntities().stream()
-                .filter(entity -> entity instanceof ItemFrame)
-                .map(entity -> (ItemFrame) entity)
-                .filter(itemFrame -> itemFrame.getItem().getType() == Material.AIR && isInEndCity(itemFrame.getLocation()))
-                .forEach(itemFrame -> itemFrame.setItem(new ItemStack(Material.ELYTRA), false));
-    }
-
 }
