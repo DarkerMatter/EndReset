@@ -9,7 +9,6 @@ public class EndResetPlugin extends JavaPlugin {
         // Ensure the command names here match the ones in your plugin.yml
         getLogger().info("EndReset plugin has been loaded.");
         getLogger().info("If you have any issues please join my discord server at https://darker.systems/discord");
-        this.getCommand("endreset").setExecutor(new EndReset(this));
         this.getCommand("resetelytras").setExecutor(new EndReset(this));
     }
     @Override

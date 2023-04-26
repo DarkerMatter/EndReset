@@ -1,6 +1,7 @@
 name: EndReset
 version: 1.0.2
-main: pl1.darkermatter.EndResetPlugin
+api-version: 1.17
+main: pl1.darkermatter.EndReset
 author: DarkerMatter
 description: Resets Elytras and End Cities in the End dimension
 website: https://darker.systems
@@ -19,9 +20,6 @@ commands:
 permissions:
   endreset.command:
     description: Allows using the /endreset command
-    default: op
-  endwipe.command:
-    description: Allows using the /endwipe command
     default: op
   resetelytras.command:
     description: Allows using the /resetelytras command

@@ -13,20 +13,26 @@ import org.bukkit.StructureType;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class EndReset implements CommandExecutor {
+public class EndReset extends JavaPlugin {
 
     private final JavaPlugin plugin;
     private BukkitTask resetElytrasTask;
 
     public EndReset(JavaPlugin plugin) {
         this.plugin = plugin;
-        plugin.getCommand("endreset").setExecutor(this);
         plugin.getCommand("resetelytras").setExecutor(this);
+        plugin.getCommand("endreset").setExecutor(this);
+    }
+    public EndReset() {
+        this.plugin = this;
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (sender.hasPermission("endreset.command") && command.getName().equalsIgnoreCase("endreset")) {
+        if (sender.hasPermission("resetelytras.command") && command.getName().equalsIgnoreCase("resetelytras")) {
+            resetElytrasInServer();
+            sender.sendMessage(ChatColor.GREEN + "All Elytras in the server have been removed.");
+        } else if (sender.hasPermission("endreset.command") && command.getName().equalsIgnoreCase("endreset")) {
             World endWorld = Bukkit.getWorld("world_the_end");
 
             if (endWorld == null) {
@@ -37,9 +43,6 @@ public class EndReset implements CommandExecutor {
             resetElytrasInWorld(endWorld);
             restoreElytrasInEndCityItemFrames(endWorld);
             sender.sendMessage(ChatColor.GREEN + "Elytras in the End dimension have been reset.");
-        } else if (sender.hasPermission("resetelytras.command") && command.getName().equalsIgnoreCase("resetelytras")) {
-            resetElytrasInServer();
-            sender.sendMessage(ChatColor.GREEN + "All Elytras in the server have been removed.");
         }
         return true;
     }
